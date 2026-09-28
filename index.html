@@ -1,2 +1,37 @@
-<!doctype html><html><head><meta charset="utf-8"><title>WhatsApp connect</title></head>
-<body><p>Setup page coming soon.</p></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connect WhatsApp — Samuel Barrios</title>
+<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.5}
+button{font-size:17px;padding:12px 20px;margin:8px 0;border:0;border-radius:8px;background:#1877f2;color:#fff;cursor:pointer;width:100%}
+button.alt{background:#25d366}#out{white-space:pre-wrap;background:#f3f3f3;padding:12px;border-radius:8px;margin-top:16px;font-family:monospace;font-size:14px}</style>
+</head><body>
+<h2>Connect WhatsApp Business to the Samuel-Accounting-Bot app</h2>
+<p><b>Recommended:</b> keep using the WhatsApp Business app on your phone and also connect the API (coexistence).</p>
+<button class="alt" onclick="launch(true)">Connect and keep using my WhatsApp Business app</button>
+<p>Or connect a number to the API only (the number stops working in the phone app):</p>
+<button onclick="launch(false)">Connect a number to the API only</button>
+<div id="out">Status: waiting. Click a button above.</div>
+<script>
+const APP_ID='1407244794160340', CONFIG_ID='1388528150110382';
+const out=document.getElementById('out');
+function log(m){out.textContent+= '\n'+m;}
+window.fbAsyncInit=function(){FB.init({appId:APP_ID,autoLogAppEvents:true,xfbml:true,version:'v23.0'});log('Facebook SDK loaded.');};
+window.addEventListener('message',function(e){
+  if(!/facebook\.com$/.test(new URL(e.origin).hostname))return;
+  try{const d=JSON.parse(e.data); if(d.type==='WA_EMBEDDED_SIGNUP'){
+    if(d.event==='FINISH'||d.event==='FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'||d.event==='FINISH_ONLY_WABA'){
+      log('DONE ('+d.event+')\nWhatsApp Business Account ID: '+(d.data.waba_id||'-')+'\nPhone number ID: '+(d.data.phone_number_id||'-')+'\nSend a screenshot of this box to ED.');
+    } else if(d.event==='CANCEL'){log('Cancelled at step: '+(d.data.current_step||'?')+(d.data.error_message?(' — '+d.data.error_message):''));}
+    else log('Event: '+d.event);
+  }}catch(_){}
+});
+function launch(coex){
+  out.textContent='Status: opening Meta window...';
+  const extras={setup:{},sessionInfoVersion:'3'};
+  if(coex) extras.featureType='whatsapp_business_app_onboarding';
+  FB.login(function(r){ log(r.authResponse?'Meta login finished.':'Meta window closed without finishing.'); },
+    {config_id:CONFIG_ID,response_type:'code',override_default_response_type:true,extras:extras});
+}
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+</body></html>
